@@ -41,6 +41,7 @@ const Application = {
 
     load () {
         if(!localStorage.getItem('trello')){
+            Application.save();
             return;
         }
         
