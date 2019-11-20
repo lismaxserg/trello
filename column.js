@@ -1,11 +1,25 @@
-const Column = {
-    idCounter: 4,
+class Column {
+    constructor(id = null){
+        const element = this.element = document.createElement('div');
+        element.classList.add('column');
+        element.setAttribute('draggable', true);
+        if(id){
+            element.setAttribute('data-column-id', id);
+        }else{
+            element.setAttribute('data-column-id', Column.idCounter);
+            Column.idCounter++;
+        }
+        
+        element.innerHTML = `<p class="column-header" contenteditable="true">В плане</p>
+        <div data-notes></div>
+        <p class="column-footer">
+            <span data-action-addNote class="action">+ Добавить карточку</span>
+        </p>`;
 
-    process(columnElement) {
-        const spanAction_addNote = columnElement.querySelector('[data-action-addNote]');
+        const spanAction_addNote = element.querySelector('[data-action-addNote]');
         spanAction_addNote.addEventListener('click', function (event) {
             const noteElement = Note.create();
-            columnElement.querySelector('[data-notes]').append(noteElement);
+            element.querySelector('[data-notes]').append(noteElement);
     
             noteElement.setAttribute('contenteditable', true);
             noteElement.focus();
@@ -13,7 +27,7 @@ const Column = {
             
         });
     
-        const header = columnElement.querySelector('.column-header');
+        const header = element.querySelector('.column-header');
     
         header.addEventListener('dblclick', function (event) {
             header.setAttribute('contenteditable', true);
@@ -24,46 +38,24 @@ const Column = {
             });
         });
 
-        columnElement.addEventListener('dragstart', Column.dragstart);
-        columnElement.addEventListener('dragend', Column.dragend);
+        element.addEventListener('dragstart', this.dragstart.bind(this));
+        element.addEventListener('dragend', this.dragend.bind(this));
 
-        columnElement.addEventListener('dragenter', Column.dragenter);
-        columnElement.addEventListener('dragover', Column.dragover);
-        columnElement.addEventListener('dragleave', Column.dragleave);
+        element.addEventListener('dragenter', this.dragenter.bind(this));
+        element.addEventListener('dragover', this.dragover.bind(this));
+        element.addEventListener('dragleave', this.dragleave.bind(this));
     
-        columnElement.addEventListener('drop', Column.drop);
-    },
-
-    create(id = null){
-        const columnElement = document.createElement('div');
-        columnElement.classList.add('column');
-        columnElement.setAttribute('draggable', true);
-        if(id){
-            columnElement.setAttribute('data-column-id', id);
-        }else{
-            columnElement.setAttribute('data-column-id', Column.idCounter);
-            Column.idCounter++;
-        }
-        
-        columnElement.innerHTML = `<p class="column-header" contenteditable="true">В плане</p>
-        <div data-notes></div>
-        <p class="column-footer">
-            <span data-action-addNote class="action">+ Добавить карточку</span>
-        </p>`;
+        element.addEventListener('drop', this.drop.bind(this));
     
-        Column.process(columnElement);
-
-        return columnElement;
-    
-    },
+    }
 
     dragstart(event){
-        Column.dragged = this;
-        this.classList.add('dragged');
+        Column.dragged = this.element;
+        this.element.classList.add('dragged');
         event.stopPropagation();
 
         document.querySelectorAll('.note').forEach(x => x.removeAttribute('draggable'));
-    },
+    }
 
     dragend(event){
         Column.dragged.classList.remove('dragged');
@@ -71,41 +63,45 @@ const Column = {
         document.querySelectorAll('.note').forEach(x => x.setAttribute('draggable', true));
 
         Application.save();
-    },
+    }
     
     dragenter(event){
-        if(!Column.dragged || this === Column.dragged) {
+        if(!Column.dragged || this.element === Column.dragged) {
             return;
         }
-        this.classList.add('under');
-    },
+        this.element.classList.add('under');
+    }
     
     dragleave(event){
-        if(!Column.dragged || this === Column.dragged) {
+        if(!Column.dragged || this.element === Column.dragged) {
             return;
         }
-        this.classList.remove('under');
-    },
+        this.element.classList.remove('under');
+    }
 
     dragover(event){
         event.preventDefault();
-        if(!Column.dragged || this === Column.dragged) {
+        if(!Column.dragged || this.element === Column.dragged) {
             return;
         }
-    },
+    }
 
     drop(event){
         if(Note.dragged){
-            return this.querySelector('[data-notes]').append(Note.dragged);
+            return this.element.querySelector('[data-notes]').append(Note.dragged);
         } else if(Column.dragged) {
            const children =  Array.from(document.querySelector('.columns').children);
-           const indexA = children.indexOf(this);
+           const indexA = children.indexOf(this.element);
            const indexB = children.indexOf(Column.dragged);
            if(indexA < indexB){
-                this.parentElement.insertBefore(Column.dragged, this); 
+                this.element.parentElement.insertBefore(Column.dragged, this.element); 
             } else{
-                this.parentElement.insertBefore(Column.dragged, this.nextElementSibling); 
+                this.element.parentElement.insertBefore(Column.dragged, this.element.nextElementSibling); 
             }
         }
     }
+
 }
+
+Column.idCounter = 4;
+Column.dragged = null;  

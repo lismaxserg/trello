@@ -41,6 +41,7 @@ const Application = {
 
     load () {
         if(!localStorage.getItem('trello')){
+            Application.save();
             return;
         }
         
@@ -51,15 +52,15 @@ const Application = {
         const getNoteById = id => object.notes.items.find(note =>  note.id === id);
 
         for (const column of object.columns.items) {
-            const columnElement = Column.create(column.id);
-            columnElement.querySelector('.column-header').textContent = column.title;
-            mountPoint.append(columnElement);
+            const columnClass = new Column(column.id);
+            columnClass.element.querySelector('.column-header').textContent = column.title;
+            mountPoint.append(columnClass.element);
         
 
         for(const noteID of column.noteIds) {
-            const note = getNoteById(noteID);
-            const noteElement = Note.create(note.id, note.content);
-            columnElement.querySelector('[data-notes]').append(noteElement);
+            const { id, content } = getNoteById(noteID);
+            const note = new Note(id, content);
+            columnClass.element.querySelector('[data-notes]').append(note.element);
         }
 
         }
